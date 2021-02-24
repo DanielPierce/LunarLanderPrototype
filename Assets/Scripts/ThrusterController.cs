@@ -13,6 +13,9 @@ public class ThrusterController : MonoBehaviour
     
     private bool isPaused = false;
 
+    private float yVelocity;
+    private float yForce;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -24,12 +27,24 @@ public class ThrusterController : MonoBehaviour
     {
         // Add affects of gravity
         lander.AddForce(Vector3.down * gravity, ForceMode.Acceleration);
+        // Calculate force of gravity on lander
+        yForce = -1 * gravity * lander.mass;
 
         // If the up arrow is down, apply an impulse this timestep
         if(Input.GetKey(KeyCode.UpArrow))
         {
             // Thrust is newtons, multiply by time since last physics step to get newton-seconds
             lander.AddForce(Vector3.up * thrust * Time.deltaTime, ForceMode.Impulse);
+            // If thrusting, add thrust to net force
+            yForce += thrust;
+        }
+
+        // Record the current velocity of the lander
+        yVelocity = lander.velocity.y;
+        // If the velocity is very very small, set it to zero
+        if(Mathf.Abs(yVelocity) < 0.001f)
+        {
+            yVelocity = 0;
         }
     }
 
@@ -51,5 +66,13 @@ public class ThrusterController : MonoBehaviour
                 Time.timeScale = 1;
             }
         }
+    }
+
+    // OnGUI is called every time the GUI is updated
+    // (which I think is every frame but don't quote me on that)
+    void OnGUI()
+    {
+        GUI.Label(new Rect(20, 40, 250, 20), "Y Velocity: " + yVelocity + " m/s");
+        GUI.Label(new Rect(20, 60, 250, 20), "Y Net Force: " + yForce + " N");
     }
 }
